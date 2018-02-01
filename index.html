@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id = "container">
+        <!--Пример для решения-->
+        <div id="math">
+            <span id = "firstSpan"></span>
+            <span> + </span>
+            <span id="secondSpan"></span>
+            <span> = </span>
+            <span id="resultSpan"></span>
+            <input type="text" id="resultInput">
+        </div>
+        <canvas id='canvas'>Обновите браузер</canvas>
+    </div>
+    <script>
+        'use strict'
+        /*---Определение-глобальных-переменных-и-инициализация-canvas---*/
+        var canvas    = document.getElementById("canvas"),
+            ctx       = canvas.getContext('2d'),
+            axis      = new Image(),
+            FIRSTNUM  = 7,                  //FIRSTNUM и SECONDNUM - числа, которые нужно сложить
+            SECONDNUM = 4;                  //их можно поменять и поменяется работа программы
+
+        ctx.clear;
+        axis.src    = 'img/sprite.png'; // тут можно выбрать img/sprite2.png , чтобы посмотреть
+                                        // как скрипт работает с другими разрешениями спрайта
+        canvas.width = axis.width;
+        canvas.height = 500;
+        ctx.drawImage(axis, 0, canvas.height - axis.height);
+
+        var STEP = axis.width / 22.4,
+            AXIS0X = axis.width / 25,
+            AXIS0Y = canvas.height - ((axis.height / 4) * 3); /* ВНИМАНИЕ. Числа при делении, конечно, магические
+                                                                 и подсчитаны на калькуляторе,
+                                                                 но это наилучший вариант, предусматривающий
+                                                                 изменение размера спрайта оси. Гораздо лучше
+                                                                 высчитанных пикселей
+                                                                 axis0x - иксовая коордната начала оси,
+                                                                 axis0y - игрековая
+                                                                 step   - шаг сетки                               */
+
+        /*---Прочие-функции---*/
+        function drawArcs(){                                          //главная функция, вызывает рисование первой дуги
+            drawArc(1, FIRSTNUM);
+        }
+
+        function drawArc(p_type, p_stepcount, p_axis0x, p_axis0y) {             //функция рисования дуги
+            if (p_axis0x==undefined){
+                p_axis0x = AXIS0X;
+            }
+            if (p_axis0y==undefined){
+                p_axis0y = AXIS0Y;
+            }
+            var radius = (STEP * p_stepcount) / 2;
+            ctx.beginPath();
+            ctx.arc( p_axis0x + radius, p_axis0y, radius, Math.PI, 2 * Math.PI);
+            ctx.stroke();
+
+            attachInput(p_type, p_axis0x, p_axis0y, radius);
+        }
+        function attachInput(p_type, p_axis0x, p_axis0y, p_radius) {                //присоединение инпутов и событий
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.style.position = 'absolute';
+            input.style.left = (p_axis0x + p_radius - 10) + 'px';
+            input.style.top = (p_axis0y - p_radius - 25) + 'px';
+            input.style.width = '20px';
+            input.style.textAlign = 'center';
+            if (p_type==1){                                   //p_type определяет тип дуги (первое или второе слагаемое)
+                input.onkeydown = function (e) {
+                    var keyCode = e.keyCode;
+                    if (keyCode === 13) {
+                        if (this.value != FIRSTNUM){
+                            this.style.color = "red";
+                            document.getElementById('firstSpan').style.backgroundColor = "yellow";
+                            this.value = '';
+                        }
+                        else{
+                            ctx.font = "14px Arial";
+                            ctx.fillText(this.value, parseInt(this.style.left, 10)+10, parseInt(this.style.top, 10)+10);
+                            this.style.color = "black";
+                            drawArc(2, SECONDNUM, (p_axis0x + 2*p_radius), p_axis0y);
+                            document.getElementById('firstSpan').style.backgroundColor = "transparent";
+                            document.getElementById('container').removeChild(this);
+                        }
+                    }
+                }
+            }
+            else{                                                                                     //для второй дуги
+                input.onkeydown = function (e) {
+                    var keyCode = e.keyCode;
+                    if (keyCode === 13) {
+                        if (this.value != SECONDNUM){
+                            this.style.color = "red";
+                            document.getElementById('secondSpan').style.backgroundColor = "yellow";
+                            this.value = '';
+                        }
+                        else{
+                            ctx.font = "14px Arial";
+                            ctx.fillText(this.value, parseInt(this.style.left, 10)+10, parseInt(this.style.top, 10)+10);
+                            this.style.color = "black";
+                            var resultInput = document.getElementById('resultInput');
+                            document.getElementById('secondSpan').style.backgroundColor = "transparent";
+                            document.getElementById('resultSpan').style.display = "none";
+                            resultInput.addEventListener('keydown', resultInputEnter);
+                            resultInput.value = '';
+                            resultInput.style.display = "inline";
+                            resultInput.focus();
+                            document.getElementById('container').removeChild(this);
+                        }
+                    }
+                }
+            }
+            document.getElementById('container').appendChild(input);
+            input.focus();
+        }
+        function resultInputEnter(e) {                                                     //обработка ввода результата
+            var keyCode = e.keyCode,
+                expectedResult =  FIRSTNUM+SECONDNUM;
+            if (keyCode === 13) {
+                if (this.value != expectedResult){
+                    this.style.color = "red";
+                }
+                else{
+                    this.style.color = "black";
+                    document.getElementById('resultSpan').innerHTML = this.value;
+                    document.getElementById('resultInput').style.display = "none";
+                    document.getElementById('resultSpan').style.display = "inline";
+                }
+            }
+        }
+        function fillMath(firstNumber, secondNumber, resultNumber){                                     //вывод примера
+            if (resultNumber==undefined){
+                resultNumber = "?";
+            }
+            var math        = document.getElementById("math"),
+                firstSpan   = document.getElementById("firstSpan"),
+                secondSpan  = document.getElementById("secondSpan"),
+                resultSpan  = document.getElementById("resultSpan"),
+                resultInput = document.getElementById("resultInput");
+            firstSpan.innerHTML = firstNumber;
+            secondSpan.innerHTML = secondNumber;
+            resultSpan.innerHTML = resultNumber;
+            var canvasWidth = parseInt(window.getComputedStyle(document.getElementById('canvas')).width),
+                mathWidth   = parseInt(window.getComputedStyle(math).width);
+            math.style.left = ((canvasWidth-mathWidth)/2) + "px";
+        }
+
+        /*---Мэйн---*/
+        fillMath(FIRSTNUM, SECONDNUM);
+        alert("Для того, чтобы ввести число, нажмите Enter");
+        drawArcs();
+    </script>
+</body>
+</html>

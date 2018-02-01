@@ -1,0 +1,26 @@
+#canvas{
+    position: fixed;
+}
+#math{
+    text-align: center;
+    font-family: Arial;
+    font-size: 40px;
+    position: absolute;
+    z-index: 400;
+}
+#container{
+
+}
+#resultInput{
+    text-align: center;
+    font-family: Arial;
+    font-size: 36px;
+    vertical-align: top;
+    height: 40px;
+    width: 40px;
+    display:none;
+    ;
+}
+#resultSpan{
+    display: inline;
+}
